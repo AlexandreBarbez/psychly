@@ -82,7 +82,19 @@ export class AppShell extends HTMLElement {
       <disclaimer-dialog></disclaimer-dialog>
       <div class="app-shell">
         <nav class="app-nav">
-          <div class="nav-brand">Psychly</div>
+          <div class="nav-brand">
+            <svg class="nav-logo-icon" viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect width="32" height="32" rx="7" fill="url(#navLogoGrad)"/>
+              <defs>
+                <linearGradient id="navLogoGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#5185b2"/>
+                  <stop offset="100%" stop-color="#2b4f78"/>
+                </linearGradient>
+              </defs>
+              <text x="16" y="24" text-anchor="middle" font-family="Georgia,serif" font-size="20" font-weight="bold" fill="white">&#936;</text>
+            </svg>
+            <span class="nav-brand-name">Psychly</span>
+          </div>
           <div class="nav-links">
             <button class="nav-btn" id="nav-journal">📓 Journal</button>
             <button class="nav-btn" id="nav-new-entry">✏️ Nouvelle entrée</button>
