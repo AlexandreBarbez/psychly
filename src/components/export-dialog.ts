@@ -36,9 +36,10 @@ export class ExportDialog extends HTMLElement {
   }
 
   private async handleExport() {
-    const dir = await open({ directory: true, multiple: false }) as string | null;
-    if (!dir) return;
     try {
+      const result = await open({ directory: true, multiple: false });
+      const dir = typeof result === "string" ? result : null;
+      if (!dir) return;
       const count = await exportJournal(dir);
       this.showFeedback(`${count} entrée(s) exportée(s).`);
     } catch (e) {
@@ -47,15 +48,16 @@ export class ExportDialog extends HTMLElement {
   }
 
   private async handleImport() {
-    const dir = await open({ directory: true, multiple: false }) as string | null;
-    if (!dir) return;
     try {
-      const result = await importJournal(dir);
-      let msg = `${result.inserted} importée(s), ${result.skipped} ignorée(s).`;
-      if (result.errors.length > 0) {
-        msg += ` ${result.errors.length} erreur(s).`;
+      const result = await open({ directory: true, multiple: false });
+      const dir = typeof result === "string" ? result : null;
+      if (!dir) return;
+      const result2 = await importJournal(dir);
+      let msg = `${result2.inserted} importée(s), ${result2.skipped} ignorée(s).`;
+      if (result2.errors.length > 0) {
+        msg += ` ${result2.errors.length} erreur(s).`;
       }
-      this.showFeedback(msg, result.errors.length > 0);
+      this.showFeedback(msg, result2.errors.length > 0);
     } catch (e) {
       this.showFeedback(`Erreur : ${e}`, true);
     }
