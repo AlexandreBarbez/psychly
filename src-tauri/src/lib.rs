@@ -2,6 +2,7 @@ pub mod db;
 pub mod journal;
 pub mod therapy;
 pub mod analysis;
+pub mod export;
 
 use std::sync::Arc;
 use tauri::Manager;
