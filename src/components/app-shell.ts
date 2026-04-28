@@ -101,6 +101,7 @@ export class AppShell extends HTMLElement {
             <button class="nav-btn" id="nav-search">🔍 Rechercher</button>
             <button class="nav-btn" id="nav-chat">💬 Chat</button>
             <button class="nav-btn" id="nav-chat-history">📋 Historique</button>
+            <button class="nav-btn" id="nav-export">💾 Export</button>
           </div>
           <div id="ollama-status" class="status-indicator status-disconnected">○ Ollama indisponible</div>
         </nav>
@@ -124,6 +125,10 @@ export class AppShell extends HTMLElement {
     });
     this.querySelector("#nav-chat-history")?.addEventListener("click", () => {
       this.navigateTo({ view: "chat-history" });
+    });
+    this.querySelector("#nav-export")?.addEventListener("click", () => {
+      const dialog = document.createElement("export-dialog");
+      document.body.appendChild(dialog);
     });
   }
 }
