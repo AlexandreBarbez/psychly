@@ -107,8 +107,6 @@ pub fn do_import(db: &Arc<Database>, src_dir: &Path) -> Result<ImportResult, Str
         .filter(|e| e.path().extension().and_then(|x| x.to_str()) == Some("md"))
         .collect();
 
-    let conn = db.conn.lock().unwrap();
-
     for dir_entry in md_files {
         let path = dir_entry.path();
         let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
@@ -129,6 +127,11 @@ pub fn do_import(db: &Arc<Database>, src_dir: &Path) -> Result<ImportResult, Str
             }
         };
 
+        let updated_at = if updated_at_str.is_empty() { created_at_str.clone() } else { updated_at_str };
+
+        // Acquire lock only for DB operations
+        let conn = db.conn.lock().unwrap();
+
         let exists: bool = conn
             .query_row("SELECT 1 FROM journal_entries WHERE id = ?1", [&id], |_| Ok(true))
             .unwrap_or(false);
@@ -138,8 +141,6 @@ pub fn do_import(db: &Arc<Database>, src_dir: &Path) -> Result<ImportResult, Str
             continue;
         }
 
-        let updated_at = if updated_at_str.is_empty() { created_at_str.clone() } else { updated_at_str };
-
         match conn.execute(
             "INSERT INTO journal_entries (id, body, created_at, updated_at) VALUES (?1, ?2, ?3, ?4)",
             rusqlite::params![id, body, created_at_str, updated_at],
@@ -147,6 +148,7 @@ pub fn do_import(db: &Arc<Database>, src_dir: &Path) -> Result<ImportResult, Str
             Ok(_) => result.inserted += 1,
             Err(e) => result.errors.push(format!("{filename}: insert failed: {e}")),
         }
+        // lock drops here at end of iteration
     }
 
     Ok(result)
