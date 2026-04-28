@@ -62,8 +62,8 @@ pub fn do_export(db: &Arc<Database>, dest_dir: &Path) -> Result<usize, String> {
             ))
         })
         .map_err(|e| format!("DB query error: {e}"))?
-        .filter_map(|r| r.ok())
-        .collect();
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| format!("DB row error: {e}"))?;
         rows
     };
 
