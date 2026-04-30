@@ -37,20 +37,21 @@ export class ExportDialog extends HTMLElement {
 
   private async handleExport() {
     try {
-      const result = await open({ directory: true, multiple: false });
-      const dir = typeof result === "string" ? result : null;
+      const raw = await open({ directory: true, multiple: false });
+      const dir = Array.isArray(raw) ? raw[0] : raw;
       if (!dir) return;
       const count = await exportJournal(dir);
       this.showFeedback(`${count} entrée(s) exportée(s).`);
     } catch (e) {
+      console.error("Export Markdown failed:", e);
       this.showFeedback(`Erreur : ${e}`, true);
     }
   }
 
   private async handleImport() {
     try {
-      const result = await open({ directory: true, multiple: false });
-      const dir = typeof result === "string" ? result : null;
+      const raw = await open({ directory: true, multiple: false });
+      const dir = Array.isArray(raw) ? raw[0] : raw;
       if (!dir) return;
       const result2 = await importJournal(dir);
       let msg = `${result2.inserted} importée(s), ${result2.skipped} ignorée(s).`;
@@ -59,6 +60,7 @@ export class ExportDialog extends HTMLElement {
       }
       this.showFeedback(msg, result2.errors.length > 0);
     } catch (e) {
+      console.error("Import Markdown failed:", e);
       this.showFeedback(`Erreur : ${e}`, true);
     }
   }
