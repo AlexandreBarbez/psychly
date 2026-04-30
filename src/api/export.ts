@@ -13,3 +13,11 @@ export async function exportJournal(destDir: string): Promise<number> {
 export async function importJournal(srcDir: string): Promise<ImportResult> {
   return invoke("import_journal", { srcDir });
 }
+
+export async function backupDb(destPath: string): Promise<void> {
+  return invoke("backup_db", { destPath });
+}
+
+export async function restoreDb(srcPath: string): Promise<ImportResult> {
+  return invoke("restore_db", { srcPath });
+}
