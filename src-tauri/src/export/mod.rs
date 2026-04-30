@@ -1,3 +1,5 @@
+pub mod sqlite;
+
 use std::path::Path;
 use std::sync::Arc;
 use serde::Serialize;
