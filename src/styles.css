@@ -415,6 +415,65 @@ input, textarea, button, select {
 }
 
 /* ============================================================
+   EXPORT / IMPORT PANEL
+   ============================================================ */
+export-dialog {
+  position: fixed;
+  top: 52px;
+  right: var(--space-md);
+  z-index: 500;
+  width: 340px;
+}
+
+.export-overlay {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.export-overlay h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.export-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.export-section h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.export-section p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.export-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.export-feedback {
+  font-size: 0.8rem;
+  min-height: 1.2em;
+}
+
+.feedback-success { color: var(--color-success, #4caf50); }
+.feedback-error   { color: var(--color-error, #f44336); }
+
+/* ============================================================
    DISCLAIMER DIALOG
    ============================================================ */
 .disclaimer-overlay {

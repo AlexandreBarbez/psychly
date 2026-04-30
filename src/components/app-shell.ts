@@ -127,6 +127,7 @@ export class AppShell extends HTMLElement {
       this.navigateTo({ view: "chat-history" });
     });
     this.querySelector("#nav-export")?.addEventListener("click", () => {
+      if (document.querySelector("export-dialog")) return;
       const dialog = document.createElement("export-dialog");
       document.body.appendChild(dialog);
     });
