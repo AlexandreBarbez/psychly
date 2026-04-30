@@ -52,6 +52,8 @@ pub fn run() {
       analysis::application::commands::get_entry_analysis,
       export::export_journal,
       export::import_journal,
+      export::sqlite::backup_db,
+      export::sqlite::restore_db,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
