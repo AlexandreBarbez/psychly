@@ -73,6 +73,7 @@ export class ExportDialog extends HTMLElement {
       let msg = `${result.inserted} importée(s), ${result.skipped} ignorée(s).`;
       if (result.errors.length > 0) msg += ` ${result.errors.length} erreur(s).`;
       this.showFeedback(msg, result.errors.length > 0);
+      this.refreshJournalList();
     } catch (e) {
       console.error("Import Markdown failed:", e);
       this.showFeedback(`Erreur : ${e}`, true);
@@ -106,10 +107,16 @@ export class ExportDialog extends HTMLElement {
       let msg = `${result.inserted} entrée(s) restaurée(s), ${result.skipped} ignorée(s).`;
       if (result.errors.length > 0) msg += ` ${result.errors.length} erreur(s).`;
       this.showFeedback(msg, result.errors.length > 0);
+      this.refreshJournalList();
     } catch (e) {
       console.error("DB restore failed:", e);
       this.showFeedback(`Erreur : ${e}`, true);
     }
+  }
+
+  private refreshJournalList() {
+    const list = document.querySelector("journal-list") as any;
+    if (list?.loadEntries) list.loadEntries();
   }
 }
 
