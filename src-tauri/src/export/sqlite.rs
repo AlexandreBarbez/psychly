@@ -32,11 +32,16 @@ pub fn do_restore(db: &Arc<Database>, src_path: &Path) -> Result<ImportResult, S
         let mut stmt = src_conn
             .prepare("SELECT id, body, created_at, updated_at FROM journal_entries")
             .map_err(|e| format!("Cannot read journal_entries: {e}"))?;
-        let rows: Vec<_> = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)))
+        let rows: Result<Vec<_>, _> = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)))
             .map_err(|e| format!("journal_entries query failed: {e}"))?
-            .filter_map(|r| r.ok())
             .collect();
-        rows
+        match rows {
+            Ok(r) => r,
+            Err(e) => {
+                result.errors.push(format!("journal_entries row error: {e}"));
+                vec![]
+            }
+        }
     };
     {
         let conn = db.conn.lock().unwrap();
@@ -63,11 +68,16 @@ pub fn do_restore(db: &Arc<Database>, src_path: &Path) -> Result<ImportResult, S
         let mut stmt = src_conn
             .prepare("SELECT id, journal_entry_id, created_at FROM chat_sessions")
             .map_err(|e| format!("Cannot read chat_sessions: {e}"))?;
-        let rows: Vec<_> = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))
+        let rows: Result<Vec<_>, _> = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))
             .map_err(|e| format!("chat_sessions query failed: {e}"))?
-            .filter_map(|r| r.ok())
             .collect();
-        rows
+        match rows {
+            Ok(r) => r,
+            Err(e) => {
+                result.errors.push(format!("chat_sessions row error: {e}"));
+                vec![]
+            }
+        }
     };
     {
         let conn = db.conn.lock().unwrap();
@@ -94,11 +104,16 @@ pub fn do_restore(db: &Arc<Database>, src_path: &Path) -> Result<ImportResult, S
         let mut stmt = src_conn
             .prepare("SELECT id, session_id, role, content, created_at FROM chat_messages")
             .map_err(|e| format!("Cannot read chat_messages: {e}"))?;
-        let rows: Vec<_> = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?)))
+        let rows: Result<Vec<_>, _> = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?)))
             .map_err(|e| format!("chat_messages query failed: {e}"))?
-            .filter_map(|r| r.ok())
             .collect();
-        rows
+        match rows {
+            Ok(r) => r,
+            Err(e) => {
+                result.errors.push(format!("chat_messages row error: {e}"));
+                vec![]
+            }
+        }
     };
     {
         let conn = db.conn.lock().unwrap();
@@ -125,11 +140,16 @@ pub fn do_restore(db: &Arc<Database>, src_path: &Path) -> Result<ImportResult, S
         let mut stmt = src_conn
             .prepare("SELECT id, entry_id, emotional_tone, themes, patterns, created_at FROM entry_analyses")
             .map_err(|e| format!("Cannot read entry_analyses: {e}"))?;
-        let rows: Vec<_> = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?)))
+        let rows: Result<Vec<_>, _> = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?)))
             .map_err(|e| format!("entry_analyses query failed: {e}"))?
-            .filter_map(|r| r.ok())
             .collect();
-        rows
+        match rows {
+            Ok(r) => r,
+            Err(e) => {
+                result.errors.push(format!("entry_analyses row error: {e}"));
+                vec![]
+            }
+        }
     };
     {
         let conn = db.conn.lock().unwrap();
@@ -159,7 +179,7 @@ pub fn backup_db(app: AppHandle, dest_path: String) -> Result<(), String> {
     let app_root = app
         .path()
         .resource_dir()
-        .map_err(|e| format!("Cannot resolve resource dir: {e}"))?;
+        .unwrap_or_else(|_| std::env::current_dir().unwrap());
     let db_path = crate::db::Database::resolve_path(&app_root);
     do_backup(&db_path, Path::new(&dest_path))
 }
