@@ -175,12 +175,24 @@ pub fn do_restore(db: &Arc<Database>, src_path: &Path) -> Result<ImportResult, S
 }
 
 #[tauri::command]
-pub fn backup_db(app: AppHandle, dest_path: String) -> Result<(), String> {
+pub fn backup_db(
+    app: AppHandle,
+    db: State<'_, Arc<Database>>,
+    dest_path: String,
+) -> Result<(), String> {
     let app_root = app
         .path()
         .resource_dir()
-        .unwrap_or_else(|_| std::env::current_dir().unwrap());
+        .map_err(|e| format!("Cannot resolve resource dir: {e}"))?;
     let db_path = crate::db::Database::resolve_path(&app_root);
+
+    // Checkpoint WAL into main file before copying to ensure consistent backup
+    {
+        let conn = db.conn.lock().unwrap();
+        conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE)")
+            .map_err(|e| format!("WAL checkpoint failed: {e}"))?;
+    }
+
     do_backup(&db_path, Path::new(&dest_path))
 }
 
