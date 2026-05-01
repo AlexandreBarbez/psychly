@@ -86,7 +86,7 @@ export class AppShell extends HTMLElement {
 
     if (detail.view === "chat") {
       appContent.style.display = "none";
-      chatContainer.style.display = "block";
+      chatContainer.style.display = "flex";
       if (!this.chatMounted) {
         if (detail.sessionId) {
           chatContainer.innerHTML = `<chat-view session-id="${detail.sessionId}"></chat-view>`;
