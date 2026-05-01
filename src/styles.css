@@ -159,6 +159,12 @@ input, textarea, button, select {
   overflow: hidden;
 }
 
+#chat-container {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+}
+
 /* ============================================================
    SHARED BUTTONS
    ============================================================ */

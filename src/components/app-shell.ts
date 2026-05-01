@@ -11,6 +11,7 @@ interface NavigateDetail {
 export class AppShell extends HTMLElement {
   private currentView = "list";
   private ollamaConnected = false;
+  private chatMounted = false;
 
   connectedCallback() {
     this.render();
@@ -42,37 +43,48 @@ export class AppShell extends HTMLElement {
 
   private navigateTo(detail: NavigateDetail) {
     this.currentView = detail.view;
-    const content = this.querySelector("#app-content");
-    if (!content) return;
+    const appContent = this.querySelector<HTMLElement>("#app-content");
+    const chatContainer = this.querySelector<HTMLElement>("#chat-container");
+    if (!appContent || !chatContainer) return;
+
+    if (detail.view === "chat") {
+      appContent.style.display = "none";
+      chatContainer.style.display = "block";
+      if (!this.chatMounted) {
+        if (detail.sessionId) {
+          chatContainer.innerHTML = `<chat-view session-id="${detail.sessionId}"></chat-view>`;
+        } else if (detail.entryId) {
+          chatContainer.innerHTML = `<chat-view entry-id="${detail.entryId}"></chat-view>`;
+        } else {
+          chatContainer.innerHTML = `<chat-view></chat-view>`;
+        }
+        this.chatMounted = true;
+      }
+      return;
+    }
+
+    appContent.style.display = "";
+    chatContainer.style.display = "none";
 
     switch (detail.view) {
       case "list":
-        content.innerHTML = `<journal-list></journal-list>`;
+        appContent.innerHTML = `<journal-list></journal-list>`;
         break;
       case "editor":
         if (detail.id) {
-          content.innerHTML = `<journal-editor entry-id="${detail.id}"></journal-editor>`;
+          appContent.innerHTML = `<journal-editor entry-id="${detail.id}"></journal-editor>`;
         } else {
-          content.innerHTML = `<journal-editor></journal-editor>`;
+          appContent.innerHTML = `<journal-editor></journal-editor>`;
         }
         break;
       case "entry":
-        content.innerHTML = `<journal-entry-view entry-id="${detail.id}"></journal-entry-view>`;
+        appContent.innerHTML = `<journal-entry-view entry-id="${detail.id}"></journal-entry-view>`;
         break;
       case "search":
-        content.innerHTML = `<journal-search></journal-search>`;
-        break;
-      case "chat":
-        if (detail.sessionId) {
-          content.innerHTML = `<chat-view session-id="${detail.sessionId}"></chat-view>`;
-        } else if (detail.entryId) {
-          content.innerHTML = `<chat-view entry-id="${detail.entryId}"></chat-view>`;
-        } else {
-          content.innerHTML = `<chat-view></chat-view>`;
-        }
+        appContent.innerHTML = `<journal-search></journal-search>`;
         break;
       case "chat-history":
-        content.innerHTML = `<chat-session-list></chat-session-list>`;
+        appContent.innerHTML = `<chat-session-list></chat-session-list>`;
         break;
     }
   }
@@ -108,6 +120,7 @@ export class AppShell extends HTMLElement {
         <main id="app-content">
           <journal-list></journal-list>
         </main>
+        <div id="chat-container"></div>
       </div>
     `;
 
@@ -130,6 +143,13 @@ export class AppShell extends HTMLElement {
       if (document.querySelector("export-dialog")) return;
       const dialog = document.createElement("export-dialog");
       document.body.appendChild(dialog);
+    });
+
+    this.querySelector("#chat-container")?.addEventListener("close-chat", () => {
+      const chatContainer = this.querySelector<HTMLElement>("#chat-container");
+      if (chatContainer) chatContainer.innerHTML = "";
+      this.chatMounted = false;
+      this.navigateTo({ view: "list" });
     });
   }
 }
