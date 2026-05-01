@@ -130,12 +130,6 @@ export class AppShell extends HTMLElement {
     this.innerHTML = `
       <disclaimer-dialog></disclaimer-dialog>
       <div class="app-shell">
-        <div class="titlebar">
-          <div class="dot dot-red"></div>
-          <div class="dot dot-yellow"></div>
-          <div class="dot dot-green"></div>
-          <span class="titlebar-path">psychly — ~/journal</span>
-        </div>
         <div class="app-body">
           <nav class="app-sidebar">
             <div class="sidebar-brand">
