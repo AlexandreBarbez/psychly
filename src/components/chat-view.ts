@@ -182,7 +182,7 @@ export class ChatView extends HTMLElement {
 
     this.querySelector("#chat-close-btn")?.addEventListener("click", () => {
       this.dispatchEvent(
-        new CustomEvent("close-chat", { bubbles: true, composed: true })
+        new CustomEvent("close-chat", { bubbles: true })
       );
     });
 
