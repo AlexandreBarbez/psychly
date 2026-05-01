@@ -164,6 +164,7 @@ export class ChatView extends HTMLElement {
         <div class="chat-header">
           <button class="btn-back" id="chat-back-btn">← Retour</button>
           <h2>Conversation</h2>
+          <button class="btn-secondary" id="chat-close-btn">✕ Fermer</button>
         </div>
         <div class="chat-thread" id="chat-thread"></div>
         <div class="chat-input-area">
@@ -176,6 +177,12 @@ export class ChatView extends HTMLElement {
     this.querySelector("#chat-back-btn")?.addEventListener("click", () => {
       this.dispatchEvent(
         new CustomEvent("navigate", { detail: { view: "list" }, bubbles: true })
+      );
+    });
+
+    this.querySelector("#chat-close-btn")?.addEventListener("click", () => {
+      this.dispatchEvent(
+        new CustomEvent("close-chat", { bubbles: true, composed: true })
       );
     });
 
