@@ -41,8 +41,45 @@ export class AppShell extends HTMLElement {
     }
   }
 
+  private updateActiveNav(view: string) {
+    this.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+    const viewToId: Record<string, string> = {
+      list: "nav-journal",
+      editor: "nav-new-entry",
+      search: "nav-search",
+      chat: "nav-chat",
+      "chat-history": "nav-chat-history",
+      entry: "nav-journal",
+    };
+    const id = viewToId[view];
+    if (id) this.querySelector(`#${id}`)?.classList.add("active");
+  }
+
+  private updateBreadcrumb(view: string, hasId?: boolean) {
+    const el = this.querySelector<HTMLElement>("#app-breadcrumb");
+    if (!el) return;
+    const paths: Record<string, string[]> = {
+      list: ["journal", "entries"],
+      editor: hasId ? ["journal", "entries", "edit"] : ["journal", "new-entry"],
+      entry: ["journal", "entries", "view"],
+      search: ["journal", "search"],
+      chat: ["therapy", "chat"],
+      "chat-history": ["therapy", "history"],
+    };
+    const segments = paths[view] ?? [view];
+    el.innerHTML = `
+      <span class="bc-home">~</span>
+      ${segments.map((s, i) => `
+        <span class="bc-sep">/</span>
+        <span class="${i === segments.length - 1 ? "bc-current" : "bc-section"}">${s}</span>
+      `).join("")}
+    `;
+  }
+
   private navigateTo(detail: NavigateDetail) {
     this.currentView = detail.view;
+    this.updateActiveNav(detail.view);
+    this.updateBreadcrumb(detail.view, !!detail.id);
     const appContent = this.querySelector<HTMLElement>("#app-content");
     const chatContainer = this.querySelector<HTMLElement>("#chat-container");
     if (!appContent || !chatContainer) return;
@@ -93,34 +130,67 @@ export class AppShell extends HTMLElement {
     this.innerHTML = `
       <disclaimer-dialog></disclaimer-dialog>
       <div class="app-shell">
-        <nav class="app-nav">
-          <div class="nav-brand">
-            <svg class="nav-logo-icon" viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect width="32" height="32" rx="7" fill="url(#navLogoGrad)"/>
-              <defs>
-                <linearGradient id="navLogoGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#5185b2"/>
-                  <stop offset="100%" stop-color="#2b4f78"/>
-                </linearGradient>
-              </defs>
-              <text x="16" y="24" text-anchor="middle" font-family="Georgia,serif" font-size="20" font-weight="bold" fill="white">&#936;</text>
-            </svg>
-            <span class="nav-brand-name">Psychly</span>
+        <div class="titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="titlebar-path">psychly — ~/journal</span>
+        </div>
+        <div class="app-body">
+          <nav class="app-sidebar">
+            <div class="sidebar-brand">
+              <div class="sidebar-brand-name">ψ psychly</div>
+              <div class="sidebar-brand-sub">v0.1.0 · local</div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-label">journal</div>
+              <button class="nav-item active" id="nav-journal">
+                <span class="nav-icon">❯</span>entries
+              </button>
+              <button class="nav-item" id="nav-new-entry">
+                <span class="nav-icon">✦</span>new entry
+              </button>
+              <button class="nav-item" id="nav-search">
+                <span class="nav-icon">⌕</span>search
+              </button>
+            </div>
+            <div class="nav-section">
+              <div class="nav-label">therapy</div>
+              <button class="nav-item" id="nav-chat">
+                <span class="nav-icon">❯</span>new chat
+              </button>
+              <button class="nav-item" id="nav-chat-history">
+                <span class="nav-icon">↳</span>history
+              </button>
+            </div>
+            <div class="nav-section">
+              <div class="nav-label">data</div>
+              <button class="nav-item" id="nav-export">
+                <span class="nav-icon">↑</span>export
+              </button>
+            </div>
+            <div class="sidebar-status">
+              <div id="ollama-status" class="status-indicator status-disconnected">○ ollama indisponible</div>
+            </div>
+          </nav>
+          <div class="main-panel">
+            <div class="breadcrumb" id="app-breadcrumb">
+              <span class="bc-home">~</span>
+              <span class="bc-sep">/</span>
+              <span class="bc-section">journal</span>
+              <span class="bc-sep">/</span>
+              <span class="bc-current">entries</span>
+            </div>
+            <main id="app-content">
+              <journal-list></journal-list>
+            </main>
+            <div id="chat-container" style="display:none;"></div>
+            <div class="bottom-bar">
+              <span class="bottom-hints" id="bottom-bar-hints"></span>
+              <span class="bottom-meta" id="bottom-bar-meta"></span>
+            </div>
           </div>
-          <div class="nav-links">
-            <button class="nav-btn" id="nav-journal">📓 Journal</button>
-            <button class="nav-btn" id="nav-new-entry">✏️ Nouvelle entrée</button>
-            <button class="nav-btn" id="nav-search">🔍 Rechercher</button>
-            <button class="nav-btn" id="nav-chat">💬 Chat</button>
-            <button class="nav-btn" id="nav-chat-history">📋 Historique</button>
-            <button class="nav-btn" id="nav-export">💾 Export</button>
-          </div>
-          <div id="ollama-status" class="status-indicator status-disconnected">○ Ollama indisponible</div>
-        </nav>
-        <main id="app-content">
-          <journal-list></journal-list>
-        </main>
-        <div id="chat-container"></div>
+        </div>
       </div>
     `;
 
@@ -147,7 +217,10 @@ export class AppShell extends HTMLElement {
 
     this.querySelector("#chat-container")?.addEventListener("close-chat", () => {
       const chatContainer = this.querySelector<HTMLElement>("#chat-container");
-      if (chatContainer) chatContainer.innerHTML = "";
+      if (chatContainer) {
+        chatContainer.innerHTML = "";
+        chatContainer.style.display = "none";
+      }
       this.chatMounted = false;
       this.navigateTo({ view: "list" });
     });
