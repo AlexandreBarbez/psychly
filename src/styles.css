@@ -217,37 +217,7 @@ input, textarea, button, select {
   overflow: hidden;
 }
 
-/* Bottom bar */
-.bottom-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 18px;
-  background: var(--color-sidebar);
-  border-top: 1px solid var(--color-border);
-  font-size: 10px;
-  flex-shrink: 0;
-}
 
-.bottom-hints {
-  display: flex;
-  gap: 12px;
-  color: var(--color-text-muted);
-}
-
-.bottom-meta {
-  color: var(--color-primary);
-}
-
-.key {
-  display: inline-block;
-  background: var(--color-border);
-  color: var(--color-text);
-  padding: 1px 5px;
-  border-radius: 2px;
-  font-size: 10px;
-  margin-right: 3px;
-}
 
 /* ============================================================
    SHARED BUTTONS

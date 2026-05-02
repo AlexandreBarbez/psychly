@@ -179,10 +179,7 @@ export class AppShell extends HTMLElement {
               <journal-list></journal-list>
             </main>
             <div id="chat-container" style="display:none;"></div>
-            <div class="bottom-bar">
-              <span class="bottom-hints" id="bottom-bar-hints"></span>
-              <span class="bottom-meta" id="bottom-bar-meta"></span>
-            </div>
+
           </div>
         </div>
       </div>
