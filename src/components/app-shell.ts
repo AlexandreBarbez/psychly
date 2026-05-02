@@ -160,7 +160,7 @@ export class AppShell extends HTMLElement {
             <div class="nav-section">
               <div class="nav-label">data</div>
               <button class="nav-item" id="nav-export">
-                <span class="nav-icon">↑</span>export
+                <span class="nav-icon">↑</span>export/import
               </button>
             </div>
             <div class="sidebar-status">
