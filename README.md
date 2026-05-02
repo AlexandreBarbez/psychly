@@ -100,6 +100,63 @@ psychly/
 └── start.sh       # Lanceur
 ```
 
+## Changer le modèle LLM
+
+Le modèle est défini dans `src-tauri/src/lib.rs` ligne 35 :
+
+```rust
+let ollama = OllamaClient::new("qwen2.5:14b-instruct-q5_K_M".to_string());
+```
+
+### Procédure
+
+1. **Télécharger le nouveau modèle** via Ollama :
+   ```bash
+   ollama pull <nouveau-modele>
+   # Exemple : ollama pull mistral:7b-instruct
+   # Exemple : ollama pull llama3.2:3b
+   ```
+
+2. **Modifier `src-tauri/src/lib.rs`**, remplacer le nom du modèle :
+   ```rust
+   // Avant
+   let ollama = OllamaClient::new("qwen2.5:14b-instruct-q5_K_M".to_string());
+
+   // Après
+   let ollama = OllamaClient::new("mistral:7b-instruct".to_string());
+   ```
+
+3. **Recompiler** :
+   ```bash
+   npm run tauri build
+   ```
+
+> Le nom exact du modèle doit correspondre à ce que `ollama list` affiche.
+
+### Recommandations
+
+| Modèle | RAM requise | Notes |
+|--------|-------------|-------|
+| `qwen2.5:14b-instruct-q5_K_M` | ~24 Go | Défaut — meilleure qualité |
+| `qwen2.5:7b-instruct` | ~12 Go | Bon compromis qualité/ressources |
+| `mistral:7b-instruct` | ~8 Go | Léger, compétent en français |
+| `llama3.2:3b` | ~4 Go | Minimal — qualité réduite |
+
+### Override via variable d'environnement (optionnel)
+
+Par défaut le modèle est hardcodé. Pour rendre la sélection dynamique sans recompiler, modifier `lib.rs` :
+
+```rust
+let model = std::env::var("OLLAMA_MODEL")
+    .unwrap_or_else(|_| "qwen2.5:14b-instruct-q5_K_M".to_string());
+let ollama = OllamaClient::new(model);
+```
+
+Puis au lancement :
+```bash
+OLLAMA_MODEL=mistral:7b-instruct ./start.sh
+```
+
 ## Avertissement
 
 Psychly est un outil d'accompagnement personnel. **Il ne remplace pas un professionnel de santé mentale.** En cas d'urgence, contactez le **3114** (numéro national de prévention du suicide, 24h/24, gratuit).
