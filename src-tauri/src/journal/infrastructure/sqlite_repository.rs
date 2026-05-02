@@ -405,7 +405,7 @@ mod tests {
         let ids = vec![e1.id.as_str(), e3.id.as_str()];
         let mut retrieved = repo.get_by_ids(&ids).unwrap();
         assert_eq!(retrieved.len(), 2);
-        
+
         retrieved.sort_by(|a, b| a.body.cmp(&b.body));
         assert_eq!(retrieved[0].body, "Entry 1");
         assert_eq!(retrieved[1].body, "Entry 3");
@@ -417,5 +417,30 @@ mod tests {
         let partial_retrieved = repo.get_by_ids(&partial_ids).unwrap();
         assert_eq!(partial_retrieved.len(), 1);
         assert_eq!(partial_retrieved[0].body, "Entry 2");
+    }
+
+    #[test]
+    fn test_search_malformed_fts5_does_not_panic() {
+        let (_db, repo) = setup();
+        // Insert an entry so the table is non-empty
+        repo.create(&JournalEntry::new("contenu de test".to_string())).unwrap();
+
+        // Unclosed quote is an invalid FTS5 expression.
+        // rusqlite returns an error during row iteration, which filter_map silently drops.
+        // The important guarantee: this never panics and returns Ok.
+        let result = repo.search("\"unclosed");
+        assert!(result.is_ok(), "Malformed FTS5 query must not panic or propagate as Err");
+        // May return empty vec (error silently swallowed) — that is acceptable current behavior.
+        // A future fix would propagate the error instead.
+    }
+
+    #[test]
+    fn test_search_fts5_operator_only() {
+        let (_db, repo) = setup();
+        repo.create(&JournalEntry::new("test de recherche".to_string())).unwrap();
+
+        // Bare FTS5 operator with no operands — another malformed expression.
+        let result = repo.search("OR");
+        assert!(result.is_ok(), "FTS5 bare operator must not panic");
     }
 }
