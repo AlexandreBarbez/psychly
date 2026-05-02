@@ -148,7 +148,17 @@ pub async fn send_message(
                     done: false,
                 });
             }
-            Err(e) => return Err(format!("Stream error: {e}")),
+            Err(e) => {
+                // Save a stub assistant message so the user message is not orphaned in the DB.
+                // An unpaired user message would pollute future LLM context.
+                let error_stub = ChatMessage::new(
+                    input.session_id.clone(),
+                    "assistant".to_string(),
+                    "Désolé, une erreur de connexion est survenue. Veuillez réessayer.".to_string(),
+                );
+                let _ = repo.add_message(&error_stub);
+                return Err(format!("Stream error: {e}"));
+            }
         }
     }
 

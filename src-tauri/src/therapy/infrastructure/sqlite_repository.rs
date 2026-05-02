@@ -280,4 +280,43 @@ mod tests {
         assert!(!response.is_empty(), "Crisis safety response must not be empty");
         assert!(response.len() > 100, "Crisis safety response must be substantive (>100 chars)");
     }
+
+    #[test]
+    fn test_error_stub_pairs_orphaned_user_message() {
+        // Documents the fix for the orphaned-message bug:
+        // when send_message encounters a stream error, it saves a stub assistant
+        // message so the user message is never left unpaired in the DB.
+        // This test simulates the repository operations that the fixed code performs.
+        let db = setup();
+        let repo = SqliteChatSessionRepository::new(Arc::clone(&db));
+
+        let session = ChatSession::new(None);
+        repo.create_session(&session).unwrap();
+
+        // The user message is saved before streaming starts
+        let user_msg = ChatMessage::new(
+            session.id.clone(),
+            "user".to_string(),
+            "Comment gérer mon anxiété ?".to_string(),
+        );
+        repo.add_message(&user_msg).unwrap();
+
+        // Simulate stream error: save the error stub assistant message
+        let error_stub = ChatMessage::new(
+            session.id.clone(),
+            "assistant".to_string(),
+            "Désolé, une erreur de connexion est survenue. Veuillez réessayer.".to_string(),
+        );
+        repo.add_message(&error_stub).unwrap();
+
+        // Verify: user message is paired — 2 messages, not 1
+        let messages = repo.get_session_messages(&session.id).unwrap();
+        assert_eq!(messages.len(), 2, "User message must be paired with error stub");
+        assert_eq!(messages[0].role, "user");
+        assert_eq!(messages[1].role, "assistant");
+        assert!(
+            messages[1].content.contains("erreur"),
+            "Error stub content must mention 'erreur'"
+        );
+    }
 }
