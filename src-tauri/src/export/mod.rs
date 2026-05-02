@@ -333,4 +333,44 @@ mod tests {
         let result = parse_markdown_entry("---\ncreated_at: 2026-04-28T10:00:00\n---\n\nBody");
         assert!(result.is_none());
     }
+
+    #[test]
+    fn test_parse_markdown_entry_body_contains_triple_dash() {
+        // A body that itself contains a --- separator line must not confuse the parser.
+        // The parser finds the FIRST \n--- as the closing frontmatter delimiter, so
+        // subsequent --- lines in the body are passed through untouched.
+        let content = "---\nid: test-uuid\ncreated_at: 2026-01-01T00:00:00\nupdated_at: 2026-01-01T00:00:00\n---\n\nPremière partie\n---\nDeuxième partie";
+        let result = parse_markdown_entry(content);
+        assert!(result.is_some(), "Entry with --- in body should parse successfully");
+        let (id, _created, _updated, body) = result.unwrap();
+        assert_eq!(id, "test-uuid");
+        assert!(body.contains("Première partie"), "Body must contain first section");
+        assert!(body.contains("---"), "Body must preserve the --- separator");
+        assert!(body.contains("Deuxième partie"), "Body must contain second section");
+    }
+
+    #[test]
+    fn test_parse_markdown_entry_empty_body() {
+        // An entry with no body after the closing --- should parse with empty string.
+        let content = "---\nid: empty-body-uuid\ncreated_at: 2026-01-01T00:00:00\nupdated_at: 2026-01-01T00:00:00\n---\n";
+        let result = parse_markdown_entry(content);
+        assert!(result.is_some(), "Entry with empty body should parse successfully");
+        let (id, _, _, body) = result.unwrap();
+        assert_eq!(id, "empty-body-uuid");
+        assert_eq!(body, "", "Body should be empty string");
+    }
+
+    #[test]
+    fn test_parse_markdown_entry_missing_updated_at_defaults_empty() {
+        // updated_at is optional — when absent, it should default to empty string
+        // (do_import then substitutes created_at for it).
+        let content = "---\nid: no-updated\ncreated_at: 2026-01-01T00:00:00\n---\n\nCorps sans updated_at";
+        let result = parse_markdown_entry(content);
+        assert!(result.is_some(), "Entry without updated_at should parse");
+        let (id, created_at, updated_at, body) = result.unwrap();
+        assert_eq!(id, "no-updated");
+        assert_eq!(created_at, "2026-01-01T00:00:00");
+        assert_eq!(updated_at, "", "Missing updated_at should default to empty string");
+        assert_eq!(body, "Corps sans updated_at");
+    }
 }
