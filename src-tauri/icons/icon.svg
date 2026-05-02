@@ -1,26 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1">
-      <stop offset="0%" stop-color="#5185b2"/>
-      <stop offset="100%" stop-color="#2b4f78"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#282a36"/>
+      <stop offset="100%" stop-color="#191a21"/>
     </linearGradient>
   </defs>
 
   <!-- Rounded square background (macOS squircle) -->
   <rect width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
 
-  <!-- Subtle top shine -->
-  <ellipse cx="512" cy="80" rx="380" ry="120" fill="white" opacity="0.07"/>
+  <!-- Subtle purple border glow -->
+  <rect width="1024" height="1024" rx="220" ry="220" fill="none" stroke="#bd93f9" stroke-width="12" opacity="0.25"/>
 
-  <!-- Ψ rendered via system font for pixel-perfect glyph at all sizes -->
+  <!-- ψ in Dracula purple, monospace stack -->
   <text
     x="512"
-    y="760"
+    y="740"
     text-anchor="middle"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="650"
-    font-weight="bold"
-    fill="white"
-    opacity="0.95"
-  >Ψ</text>
+    font-family="'JetBrains Mono', 'Courier New', monospace"
+    font-size="620"
+    font-weight="600"
+    fill="#bd93f9"
+  >ψ</text>
+
+  <!-- Terminal cursor blink bar under ψ -->
+  <rect x="580" y="770" width="80" height="16" rx="3" fill="#50fa7b" opacity="0.85"/>
 </svg>
