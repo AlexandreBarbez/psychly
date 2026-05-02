@@ -436,14 +436,15 @@ mod tests {
     }
 
     #[test]
-    fn test_search_fts5_operator_only() {
+    fn test_search_fts5_unclosed_paren_does_not_panic() {
         let (_db, repo) = setup();
         repo.create(&JournalEntry::new("test de recherche".to_string())).unwrap();
 
-        // Bare FTS5 operator with no operands — another malformed expression.
-        // Result must be empty: either error swallowed by filter_map, or no doc contains "OR".
-        let result = repo.search("OR");
-        assert!(result.is_ok(), "FTS5 bare operator must not panic");
-        assert_eq!(result.unwrap().len(), 0, "Bare OR query must return no results");
+        // Unclosed parenthesis is an unambiguous FTS5 parse error (unlike bare "OR"
+        // which FTS5 may treat as a literal token). The error is swallowed by
+        // filter_map(|r| r.ok()), returning Ok([]).
+        let result = repo.search("(unclosed paren");
+        assert!(result.is_ok(), "FTS5 unclosed paren must not panic");
+        assert!(result.unwrap().is_empty(), "FTS5 parse error must return empty results");
     }
 }
