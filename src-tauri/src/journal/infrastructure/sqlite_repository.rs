@@ -430,8 +430,9 @@ mod tests {
         // The important guarantee: this never panics and returns Ok.
         let result = repo.search("\"unclosed");
         assert!(result.is_ok(), "Malformed FTS5 query must not panic or propagate as Err");
-        // May return empty vec (error silently swallowed) — that is acceptable current behavior.
+        // Error is silently swallowed by filter_map — returns Ok([]).
         // A future fix would propagate the error instead.
+        assert!(result.unwrap().is_empty(), "Malformed FTS5 query must return empty results");
     }
 
     #[test]
@@ -440,7 +441,9 @@ mod tests {
         repo.create(&JournalEntry::new("test de recherche".to_string())).unwrap();
 
         // Bare FTS5 operator with no operands — another malformed expression.
+        // Result must be empty: either error swallowed by filter_map, or no doc contains "OR".
         let result = repo.search("OR");
         assert!(result.is_ok(), "FTS5 bare operator must not panic");
+        assert_eq!(result.unwrap().len(), 0, "Bare OR query must return no results");
     }
 }
