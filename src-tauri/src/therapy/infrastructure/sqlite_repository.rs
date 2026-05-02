@@ -130,6 +130,7 @@ impl ChatSessionRepository for SqliteChatSessionRepository {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::therapy::application::crisis_detection::crisis_safety_response;
 
     fn setup() -> Arc<Database> {
         Arc::new(Database::open_in_memory().unwrap())
@@ -226,5 +227,57 @@ mod tests {
         assert_eq!(messages.len(), 3);
         assert_eq!(messages[0].content, "Premier");
         assert_eq!(messages[2].content, "Troisième");
+    }
+
+    #[test]
+    fn test_crisis_path_saves_both_messages() {
+        // Simulates what send_message does when detect_crisis() returns true.
+        // Verifies both the user message and crisis assistant message are persisted.
+        let db = setup();
+        let repo = SqliteChatSessionRepository::new(Arc::clone(&db));
+
+        let session = ChatSession::new(None);
+        repo.create_session(&session).unwrap();
+
+        // Step 1: save user message (crisis content)
+        let user_msg = ChatMessage::new(
+            session.id.clone(),
+            "user".to_string(),
+            "j'ai envie de me suicider".to_string(),
+        );
+        repo.add_message(&user_msg).unwrap();
+
+        // Step 2: save crisis safety response as assistant message
+        let crisis_response = crisis_safety_response();
+        let assistant_msg = ChatMessage::new(
+            session.id.clone(),
+            "assistant".to_string(),
+            crisis_response.clone(),
+        );
+        repo.add_message(&assistant_msg).unwrap();
+
+        // Verify both messages are stored with correct roles and order
+        let messages = repo.get_session_messages(&session.id).unwrap();
+        assert_eq!(messages.len(), 2, "Both user and assistant messages must be persisted");
+        assert_eq!(messages[0].role, "user");
+        assert_eq!(messages[0].content, "j'ai envie de me suicider");
+        assert_eq!(messages[1].role, "assistant");
+        assert!(
+            messages[1].content.contains("3114"),
+            "Crisis response must reference the 3114 helpline"
+        );
+        assert!(
+            messages[1].content.contains("SOS Amitié"),
+            "Crisis response must reference SOS Amitié"
+        );
+    }
+
+    #[test]
+    fn test_crisis_response_is_not_empty() {
+        // Guard: crisis_safety_response() must never return an empty string,
+        // otherwise the assistant message would be stored empty in the DB.
+        let response = crisis_safety_response();
+        assert!(!response.is_empty(), "Crisis safety response must not be empty");
+        assert!(response.len() > 100, "Crisis safety response must be substantive (>100 chars)");
     }
 }
