@@ -307,12 +307,59 @@ mod tests {
         let mut e2 = JournalEntry::new("body2".to_string());
         e1.created_at = chrono::NaiveDate::from_ymd_opt(2025, 1, 1).unwrap().and_hms_opt(12, 0, 0).unwrap();
         e2.created_at = chrono::NaiveDate::from_ymd_opt(2025, 1, 2).unwrap().and_hms_opt(12, 0, 0).unwrap();
-        
+
         let entries = vec![(e2, "body2".to_string()), (e1, "body1".to_string())];
         let formatted = format_journal_entries(&entries);
-        
+
         assert!(formatted.contains("=== Entrées de journal récentes / pertinentes ==="));
         assert!(formatted.contains("[Date : 2025-01-01 12:00]\nbody1"));
         assert!(formatted.contains("[Date : 2025-01-02 12:00]\nbody2"));
+    }
+
+    #[test]
+    fn test_truncate_entries_single_entry_gets_full_budget() {
+        // With 1 entry, budget_tokens / 1 = budget_tokens, max_chars = budget_tokens * CHARS_PER_TOKEN
+        let budget_tokens: usize = 10; // 40 chars
+        let max_chars = budget_tokens * CHARS_PER_TOKEN;
+
+        // Entry shorter than budget — not truncated
+        let short = JournalEntry::new("bonjour".to_string()); // 7 chars < 40
+        let result = truncate_entries(&[short.clone()], budget_tokens);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].1, "bonjour", "Short entry must not be truncated");
+        assert!(!result[0].1.contains("[...]"));
+
+        // Entry longer than budget — truncated to max_chars + " [...]"
+        let long_body = "a".repeat(max_chars + 10); // 50 chars > 40
+        let long = JournalEntry::new(long_body.clone());
+        let result = truncate_entries(&[long], budget_tokens);
+        assert_eq!(result.len(), 1);
+        assert!(result[0].1.ends_with(" [...]"), "Long entry must end with truncation marker");
+        assert_eq!(
+            result[0].1.len(),
+            max_chars + " [...]".len(),
+            "Truncated body must be exactly max_chars + marker length"
+        );
+    }
+
+    #[test]
+    fn test_truncate_entries_all_fit_no_truncation() {
+        // budget_tokens=100, 2 entries → 50 tokens each = 200 chars each (CHARS_PER_TOKEN=4)
+        // Both entries are far below 200 chars, so neither should be truncated.
+        let budget_tokens: usize = 100;
+        let e1 = JournalEntry::new("court".to_string());         // 5 chars
+        let e2 = JournalEntry::new("aussi court".to_string());   // 11 chars
+        let result = truncate_entries(&[e1, e2], budget_tokens);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].1, "court");
+        assert_eq!(result[1].1, "aussi court");
+        assert!(!result[0].1.contains("[...]"));
+        assert!(!result[1].1.contains("[...]"));
+    }
+
+    #[test]
+    fn test_truncate_entries_empty_input() {
+        let result = truncate_entries(&[], 1000);
+        assert!(result.is_empty(), "Empty input must return empty vec");
     }
 }
