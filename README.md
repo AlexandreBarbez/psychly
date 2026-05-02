@@ -70,6 +70,10 @@ ollama pull qwen2.5:14b-instruct-q5_K_M
 
 # Lancer en développement
 npm run tauri dev
+
+# Installer en local en tant qu'app
+npm run tauri build
+Copie du .app dans le répertoire local Application
 ```
 
 ## Utilisation portable

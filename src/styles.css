@@ -215,9 +215,17 @@ input, textarea, button, select {
 #chat-container {
   flex: 1;
   overflow: hidden;
+  width: 100%;
 }
 
-
+/* chat-view custom element needs explicit block/flex to fill container */
+chat-view {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
 
 /* ============================================================
    SHARED BUTTONS
@@ -323,6 +331,7 @@ input, textarea, button, select {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
   background: var(--color-bg);
 }
 
